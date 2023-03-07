@@ -1,20 +1,20 @@
+const moment = require('moment');
+
 const Shop = require('../models/ShopSchema');
 const Slot = require('../models/SlotSchema');
 const Order = require('../models/OrderSchema');
 const Client = require('../models/ClientSchema');
 
-async function getClosedShops(req,res){
-    try{
-        const shops = await Shop.find({zip: req.params.codePostal}); 
-        
-        res.status(200).json(shops);
+async function getClosedShops(req, res) {
+    try {
+      const shops = await Shop.find({zip: req.params.codePostal}); 
+      const shopNames = shops.map(shop => shop.name); // transformer les objets shops en un tableau contenant seulement le nom de chaque boutique
+      res.status(200).json({shopNames: shopNames, zip: req.params.codePostal});
+    } catch (error) {
+      res.status(500).json({message: error});
     }
-    catch(error)
-    {
-        res.status(500).json({message:error})
-    }
-}
-
+  }
+  
 async function newShop(req,res){
 
     const shop = new Shop({
@@ -36,8 +36,11 @@ async function newShop(req,res){
 async function getProducts(req,res){
     try{
         const shop = await Shop.findById(req.params.shopId);
-        const products = shop.products;
-        res.status(200).json(products);
+        const produits = Array.from(shop.products.values()).map(({ product }) => {
+            const { name, price } = product;
+            return { name, price };
+          });        
+        res.status(200).json(produits);
     }
     catch(error)
     {
@@ -57,16 +60,19 @@ async function getProductQuantity(req,res){
     }
 }
 
-async function getShopSlots(req,res){
-    try{
+async function getShopSlots(req, res) {
+    try {
         const slots = await Slot.find({shopId: req.params.shopId, isAvailable: true});
-        res.status(200).json(slots);
-    }
-    catch(error)
-    {
+        const slotsData = slots.map(slot => ({
+            id: slot.id,
+            date: moment(slot.date).format('DD/MM/YYYY - HH-mm')
+        }));
+        res.status(200).json(slotsData);
+    } catch (error) {
         res.status(500).json({message:error})
     }
 }
+
 
 async function bookSlot(req,res){
     try{
@@ -82,7 +88,12 @@ async function bookSlot(req,res){
                 slot.clientId = req.body.clientId;
                 slot.orderId = req.body.orderId;
                 const savedSlot = await slot.save();
-                res.status(200).json(savedSlot);
+                const slotBooked = {
+                    id: savedSlot.id,
+                    date: moment(savedSlot.date).format('DD/MM/YYYY - HH-mm'),
+                    orderId: savedSlot.orderId,
+                }
+                res.status(200).json(slotBooked);
             }else{
                 res.status(404).json({message: "Slot not found or slot already booked"});
             }
@@ -98,11 +109,39 @@ async function bookSlot(req,res){
     }
 }
 
+async function updateShopStock(req, res) {
+    try {
+      const shop = await Shop.findById(req.params.shopId);
+      const products = shop.products;
+  
+      const productsToUpdate = req.body.products;
+
+      for (let productName in productsToUpdate) {
+        const name = productsToUpdate[productName].product.name;
+        const price = productsToUpdate[productName].product.price;
+        const quantity = productsToUpdate[productName].quantity;
+        const action = productsToUpdate[productName].action;
+
+        if(action == "add" || action == "modify"){
+            products.set(name, {product:{ name: name, price: price}, quantity: quantity});
+        }else if(action == "delete"){
+            products.delete(name);
+        }
+      }
+      await shop.save();
+  
+      res.status(200).json({ message: "Stock updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: error });
+    }
+}
+
 module.exports = {
     getClosedShops,
     newShop,
     getProducts,
     getProductQuantity,
     getShopSlots,
-    bookSlot
+    bookSlot,
+    updateShopStock
 }
