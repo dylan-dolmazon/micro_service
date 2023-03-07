@@ -8,7 +8,6 @@ async function register(req, res) {
             phone: req.body.phone,
             password: req.body.password
         });
-        console.log(client)
         await client.save();
         res.status(200).json(client);
     }
