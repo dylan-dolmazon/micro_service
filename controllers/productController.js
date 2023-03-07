@@ -1,5 +1,5 @@
 
-const productObject = require('../models/ProductSchema');
+const productObject = require('../models/ProductSchema')
 
 async function getAllProducts(req,res){
     try{
