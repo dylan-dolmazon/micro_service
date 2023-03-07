@@ -9,7 +9,6 @@ async function newOrder(req, res) {
             date: new Date(),
             clientId: req.params.clientId
         });
-        console.log(order)
         await order.save();
         res.status(200).json(order);
     }

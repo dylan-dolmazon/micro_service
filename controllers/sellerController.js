@@ -7,7 +7,6 @@ async function newSeller(req, res) {
             email: req.body.email,
             phone: req.body.phone
         });
-        console.log(seller)
         await seller.save();
         res.status(200).json(seller);
     }

@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
 
-import ClientSchema from './ClientSchema';
-import OrderSchema from './OrderSchema';
-import ShopSchema from './ShopSchema';
-
 const SlotSchema = mongoose.Schema({
     date: {
         type: Date,
@@ -13,16 +9,16 @@ const SlotSchema = mongoose.Schema({
         type: Boolean,
         required: true
     },
-    shop: {
-        type: ShopSchema,
+    shopId: {
+        type: String,
         required: true
     },
-    order: {
-        type: OrderSchema,
+    orderId: {
+        type: String,
         required: false
     },
-    client: {
-        type: ClientSchema,
+    clientId: {
+        type: String,
         required: false
     }
 });

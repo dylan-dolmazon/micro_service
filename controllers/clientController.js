@@ -12,7 +12,6 @@ async function register(req, res) {
             password: hash
         });
         let clientSave = await client.save();
-        console.log('clientSave: ', clientSave);
         res.status(200).json(clientSave);
     }
     catch (error) {
