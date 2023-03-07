@@ -12,7 +12,7 @@ async function register(req, res) {
             password: hash
         });
         let clientSave = await client.save();
-        res.status(200).json(clientSave);
+        res.status(201).json(clientSave);
     }
     catch (error) {
         res.status(500).json({ message: error })
@@ -22,14 +22,17 @@ async function register(req, res) {
 async function login(req, res) {
     try {
         let client = await Client.findOne({email: req.body.email})
-        if(client===null)
+        if(client===null){
             return res.status(404).json({ error: 'Client not found !' });
+        }
+
         let isCompare = await bcrypt.compare(req.body.password, client.password);
-        if(!isCompare)
+        if(!isCompare){
             return res.status(401).json({ error: 'Wrong password !' });
+        }
         res.status(200).json({client: client, token: jwt.sign(
             { email: client.email },
-            'clientsdgkh56k46g723sq568etfgfd3sgfdy5s7q564f2T',
+            process.env.TOKEN_SECRET_CLIENT,
             { expiresIn: '24h' }
         )});
     }

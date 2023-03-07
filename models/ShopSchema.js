@@ -20,7 +20,7 @@ const ShopSchema = mongoose.Schema({
         of: {
           type: {
             product: {
-              type: Product,
+              type: String,
               required: true
             },
             quantity: {

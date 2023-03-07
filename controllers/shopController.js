@@ -5,11 +5,13 @@ const Slot = require('../models/SlotSchema');
 const Order = require('../models/OrderSchema');
 const Client = require('../models/ClientSchema');
 
+const mailController = require('./mailController');
+
 async function getClosedShops(req, res) {
     try {
-      const shops = await Shop.find({zip: req.params.codePostal}); 
+      const shops = await Shop.find({zip: req.query.zip}); 
       const shopNames = shops.map(shop => shop.name); // transformer les objets shops en un tableau contenant seulement le nom de chaque boutique
-      res.status(200).json({shopNames: shopNames, zip: req.params.codePostal});
+      res.status(200).json({shopNames: shopNames, zip: req.params.zip});
     } catch (error) {
       res.status(500).json({message: error});
     }
@@ -25,7 +27,7 @@ async function newShop(req,res){
     });
     try{
         const savedShop = await shop.save();
-        res.status(200).json(savedShop);
+        res.status(201).json(savedShop);
     }
     catch(error)
     {
@@ -40,6 +42,9 @@ async function getProducts(req,res){
             const { name, price } = product;
             return { name, price };
           });        
+        if(produits.length == 0){
+            res.status(204).json({message: "No products found"});
+        }
         res.status(200).json(produits);
     }
     catch(error)
@@ -52,6 +57,9 @@ async function getProductQuantity(req,res){
     try{
         const shop = await Shop.findById(req.params.shopId);
         const product = shop.products.get(req.params.productId);
+        if(product == null){
+            res.status(404).json({message: "Product not found"});
+        }
         res.status(200).json({quantity: product.quantity, productName: product.product.name});
     }
     catch(error)
@@ -67,6 +75,9 @@ async function getShopSlots(req, res) {
             id: slot.id,
             date: moment(slot.date).format('DD/MM/YYYY - HH-mm')
         }));
+        if(slotsData.length == 0){
+            res.status(204).json({message: "No slots found"});
+        }
         res.status(200).json(slotsData);
     } catch (error) {
         res.status(500).json({message:error})
@@ -78,6 +89,13 @@ async function bookSlot(req,res){
     try{
         const order = await Order.findById(req.body.orderId);
         const client = await Client.findById(req.body.clientId);
+
+        if(order == null){
+            res.status(404).json({message: "Order not found"});
+        }
+        if(client == null){
+            res.status(404).json({message: "Client not found"});
+        }
 
         const isClientBookingHisOrder = order.clientId == client.id;
 
@@ -105,13 +123,18 @@ async function bookSlot(req,res){
     }
     catch(error)
     {
-        res.status(404).json({message: "Client or order not found"})
+        res.status(500).json({message: error})
     }
 }
 
 async function updateShopStock(req, res) {
     try {
       const shop = await Shop.findById(req.params.shopId);
+
+      if(shop == null){
+        res.status(404).json({message: "Shop not found"});
+        }
+
       const products = shop.products;
   
       const productsToUpdate = req.body.products;
@@ -136,6 +159,45 @@ async function updateShopStock(req, res) {
     }
 }
 
+async function validateOrder(req, res) {
+    try {
+        let order = await Order.findById(req.params.orderId)
+        if (order === null){
+            return res.status(404).json({ error: 'Order not found !' });
+
+        }
+        order.isValid = true;
+        await order.save();
+
+        const client = await Client.findById(order.clientId);
+        if(client === null){
+            return res.status(404).json({ error: 'Client not found !' });
+        }
+
+        mailController.sendConfirmation(client.email, order.id);
+        res.status(200).json({ message: "Order validated", order: order.id});
+    } catch (error) {
+        res.status(500).json({message: error})
+    }
+}
+
+async function newOrder(req, res) {
+    try {
+        const order = new Order({
+            products: req.body.products,
+            shopId: req.params.shopId,
+            isValid: false,
+            date: new Date(),
+            clientId: req.body.clientId            
+        });
+        await order.save();
+        res.status(201).json(order);
+    }
+    catch (error) {
+        res.status(500).json({ message: error })
+    }
+}
+
 module.exports = {
     getClosedShops,
     newShop,
@@ -143,5 +205,7 @@ module.exports = {
     getProductQuantity,
     getShopSlots,
     bookSlot,
-    updateShopStock
+    updateShopStock,
+    validateOrder,
+    newOrder
 }

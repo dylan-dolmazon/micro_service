@@ -8,7 +8,7 @@ async function newSeller(req, res) {
             phone: req.body.phone
         });
         await seller.save();
-        res.status(200).json(seller);
+        res.status(201).json(seller);
     }
     catch (error) {
         res.status(500).json({ message: error })
@@ -20,7 +20,7 @@ async function newMessage(req, res) {
         const seller = await Seller.findById(req.params.sellerId);
         seller.messages.push(req.body.message);
         await seller.save();
-        res.status(200).json(seller);
+        res.status(201).json({seller: seller, message: 'Message create => '+ req.body.message});
     }
     catch (error) {
         res.status(500).json({ message: error })
