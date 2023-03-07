@@ -1,5 +1,5 @@
 const express = require('express');
-const security = require('./auth')
+require('dotenv').config();
 
 /*
 const routesproducts = require('./routes/product');
@@ -18,7 +18,7 @@ const routesClients = require('./routes/client');
 const routesOrders = require('./routes/order');
 const routesAdmin = require('./routes/admin');
 
-mongoose.connect("mongodb://localhost:27017/pimpoShop", ()=>{
+mongoose.connect(process.env.DB_ADRESS, ()=>{
     console.log("DB Connected ");
 });
 
