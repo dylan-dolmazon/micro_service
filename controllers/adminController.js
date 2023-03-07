@@ -1,7 +1,7 @@
 const Admin = require('../models/adminSchema');
 const jwt = require('jsonwebtoken'); 
 const bcrypt = require('bcrypt');
-
+const mailController = require('./mailController');
 async function register(req, res) {
     try {
         let hash = await bcrypt.hash(req.body.password, 10);
@@ -36,8 +36,22 @@ async function login(req, res) {
         res.status(500).json({ message: error })
     }
 }
+async function validateOrder(req, res) {
+    try {
+        let order = await Order.findOne({ _id: req.params.orderId })
+        if (order === null)
+            return res.status(404).json({ error: 'Order not found !' });
+        order.isValid = true;
+        await order.save();
+        mailController.sendConfirmation(order.client, order);
+        res.status(200).json(order);
+    } catch (error) {
+        res.status(500).json({ message: error })
+    }
+}
 
 module.exports = {
     register,
-    login
+    login,
+    validateOrder
 }
