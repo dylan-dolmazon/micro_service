@@ -1,17 +1,19 @@
 const nodemailer = require('nodemailer');
-const Order = require('../models/OrderSchema');
+
+require('dotenv').config();
+
 function sendConfirmation(client, order){
     let transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'pimpoadrien@gmail.com',
-                pass: 'mggwxnswkagnwhfr'
+                user: process.env.EMAIL_FROM,
+                pass: process.env.EMAIL_PASSWORD
             }
         });
         
         // setup email data with unicode symbols
         let mailOptions = {
-            from: 'pimpoadrien@gmail.com', // sender address
+            from: process.env.EMAIL_FROM, // sender address
             to: client.email, // list of receivers
             subject: 'Confirmation de votre commande n° '+order._id, // Subject line
             text: `Votre commande à été validée et sera expédié dans les plus bref délais`, // plain text body
