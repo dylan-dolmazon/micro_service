@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get('/', shopController.getClosedShops);
 router.get('/:shopId/products', shopController.getProducts);
-router.get('/:shopId/products/:productId/quantity', shopController.getProductQuantity)
+router.get('/:shopId/products/:productId', shopController.getProductQuantity)
 
 router.get('/:shopId/slots', security.checkAuth , shopController.getShopSlots);
 router.put('/:shopId/orders/:orderId',security.checkAuth, shopController.bookSlot);
