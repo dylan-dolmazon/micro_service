@@ -8,9 +8,9 @@ const routesSellers = require('./routes/seller');
 const routesClients = require('./routes/client');
 const routesAdmin = require('./routes/admin');
 const routesOrder = require('./routes/order');
-require('dotenv').config();
+require('dotenv/config');
 
-mongoose.connect(process.env.DB_ADRESS, ()=>{
+mongoose.connect(process.env.DB_ADDRESS, ()=>{
     console.log("DB Connected ");
 });
 
