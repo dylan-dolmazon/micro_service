@@ -180,7 +180,7 @@ async function bookSlot(req, res) {
       res.status(500).json({ message: error });
     }
   }
-async function updateShopStock(req, res) {
+  async function updateShopStock(req, res) {
     try {
         const shop = await Shop.findById(req.params.shopId);
 
@@ -188,31 +188,69 @@ async function updateShopStock(req, res) {
         let countRemovedProducts = 0;
         let countUpdatedProducts = 0;
 
-      if(shop == null){
-        res.status(404).json({message: "Shop not found"});
+        if(shop == null){
+            return res.status(404).json({message: "Shop not found"});
+            }
+
+        const products = shop.products;
+            
+        if(products == null){
+            return res.status(404).json({message: "No Products in shop"});
         }
+            
+        const productsToUpdate = req.body.products;
 
-      const products = shop.products;
-  
-      const productsToUpdate = req.body.products;
+        for (let productName in productsToUpdate) {
+            const product = await Product.findOne({name: productsToUpdate[productName].product.name});
+            if(product == null){
+                return res.status(404).json({message: "Product not found"});
+            }
 
-      for (let productName in productsToUpdate) {
-        const name = productsToUpdate[productName].product.name;
-        const price = productsToUpdate[productName].product.price;
-        const quantity = productsToUpdate[productName].quantity;
-        const action = productsToUpdate[productName].action;
-
-        if(action == "add" || action == "modify"){
-            products.set(name, {product:{ name: name, price: price}, quantity: quantity});
-        }else if(action == "delete"){
-            products.delete(name);
+            if(productsToUpdate[productName].action == "add"){
+                countAddedProducts++;
+                shop.products.set(productName,{
+                    product: product.id,
+                    quantity: productsToUpdate[productName].quantity
+                });
+                await shop.save();
+            }else{
+                for (const entry of shop.products.entries()) {
+                    const key = entry[0];
+                    const value = entry[1];
+                    if(value.product == product.id && productsToUpdate[productName].action == "update"){
+                        countUpdatedProducts++;
+                        if(productsToUpdate[productName].quantity < 0){
+                            return res.status(400).json({message: "Quantity must be positive"});
+                        }
+                        if(productsToUpdate[productName].action == "update"){
+                        product.set(
+                            {
+                                price: productsToUpdate[productName].product.price,
+                            }
+                        );
+                        shop.products.set(key, {
+                            product: value.product,
+                            quantity: productsToUpdate[productName].quantity
+                        });
+                        await product.save();
+                        await shop.save();
+    
+                        }
+                    }else if(value.product == product.id && productsToUpdate[productName].action == "delete"){
+                        countRemovedProducts++;
+                        shop.products.delete(key);
+                        await product.save();
+                        await shop.save();
+                    }
+                } 
+            }
         }
-      }
-      await shop.save();
-  
-      res.status(200).json({ message: "Stock updated successfully" });
+        if(countAddedProducts == 0 && countUpdatedProducts == 0 && countRemovedProducts == 0){
+            return res.status(204).json({message: "Nothing to update or delete in add"});
+        }
+    res.status(200).json({message: `Stock updated successfully with ${countAddedProducts} added products, ${countUpdatedProducts} updated products and ${countRemovedProducts} removed products`});
     } catch (error) {
-      res.status(500).json({ message: error });
+    res.status(500).json({ message: error });
     }
 }
 
