@@ -4,6 +4,6 @@ const shopController = require('../controllers/shopController');
 
 const router = express.Router();
 
-router.get('/:orderId', shopController.validateOrder);
+router.put('/:orderId', shopController.validateOrder);
 
 module.exports = router;

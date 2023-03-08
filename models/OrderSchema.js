@@ -38,7 +38,7 @@ const OrderSchema = mongoose.Schema({
     },
     withdrawDate: {
         type: Number,
-        required: false
+        required: false,
     }
 });
 

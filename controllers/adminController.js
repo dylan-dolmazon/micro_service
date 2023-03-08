@@ -17,6 +17,8 @@ async function register(req, res) {
         res.status(201).json(adminSave);
     }
     catch (error) {
+        if(error.code === 11000)
+            return res.status(409).json({ error: 'Email already exists !' });
         res.status(500).json({ message: error })
     }
 }
@@ -27,11 +29,11 @@ async function login(req, res) {
     try {
         let admin = await Admin.findOne({email: req.body.email})
         if(admin===null){
-            return res.status(404).json({ error: 'Admin not found !' });
+            return res.status(404).json({ error: 'Invalid credentials !' });
         }
         let isCompare = await bcrypt.compare(req.body.password, admin.password);
         if(!isCompare){
-            return res.status(401).json({ error: 'Wrong password !' });
+            return res.status(401).json({ error: 'Invalid credentials !' });
         }
         res.status(200).json({admin: admin, token: jwt.sign(
             { email: admin.email },
