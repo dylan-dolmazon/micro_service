@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 async function register(req, res) {
+    if(req.body.password == undefined || req.body.email == undefined || req.body.name == undefined || req.body.phone == undefined)
+      return res.status(400).json({ error: 'Missing parameters !' });
     try {
         let hash = await bcrypt.hash(req.body.password, 10);
         const client = new Client({
@@ -20,6 +22,8 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
+    if(req.body.password == undefined || req.body.email == undefined)
+      return res.status(400).json({ error: 'Missing parameters !' });
     try {
         let client = await Client.findOne({email: req.body.email})
         if(client===null){

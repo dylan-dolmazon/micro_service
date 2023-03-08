@@ -1,6 +1,5 @@
 const express = require('express');
 
-require('dotenv/config');
 const mongoose = require('mongoose');
 
 const routesProducts = require('./routes/product');
@@ -8,8 +7,10 @@ const routesShops = require('./routes/shop');
 const routesSellers = require('./routes/seller');
 const routesClients = require('./routes/client');
 const routesAdmin = require('./routes/admin');
+const routesOrder = require('./routes/order');
+require('dotenv').config();
 
-mongoose.connect(process.env.DB_ADDRESS, ()=>{
+mongoose.connect(process.env.DB_ADRESS, ()=>{
     console.log("DB Connected ");
 });
 
@@ -22,6 +23,6 @@ app.use('/shops', routesShops);
 app.use('/sellers',routesSellers);
 app.use('/clients',routesClients);
 app.use('/admin', routesAdmin);
-
+app.use('/orders', routesOrder);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Listening on http://localhost:${PORT} ...`));

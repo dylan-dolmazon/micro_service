@@ -1,3 +1,4 @@
+const { number } = require('joi');
 const mongoose = require('mongoose');
 
 const ProductSchema = require('./ProductSchema');
@@ -34,6 +35,10 @@ const OrderSchema = mongoose.Schema({
     clientId: {
         type: String,
         required: true
+    },
+    withdrawDate: {
+        type: Number,
+        required: false
     }
 });
 
