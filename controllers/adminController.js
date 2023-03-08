@@ -14,7 +14,6 @@ async function register(req, res) {
             password: hash
         });
         let adminSave = await admin.save();
-        console.log('adminSave: ', adminSave);
         res.status(201).json(adminSave);
     }
     catch (error) {

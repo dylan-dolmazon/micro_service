@@ -79,7 +79,6 @@ async function getShopSlots(req, res) {
     )
       return res.status(400).json({ message: "Bad request" });
     const date = new Date(req.query.year, req.query.month - 1, req.query.day);
-    console.log("date: ", date);
     const dateFin = new Date(
       date.getFullYear(),
       date.getMonth(),
@@ -98,9 +97,6 @@ async function getShopSlots(req, res) {
       shopId: req.params.shopId,
     });
 
-    orders.forEach((order) => {
-      console.log(new Date(order.withdrawDate).getHours());
-    });
     var tab = [];
 
     for (var h = 8; h < 17; h++) {
@@ -119,7 +115,6 @@ async function getShopSlots(req, res) {
         }
       }
     }
-    console.log(tab);
     res.status(200).json({ slots: tab });
   } catch (error) {
     res.status(500).json({ message: error });
@@ -145,7 +140,6 @@ async function bookSlot(req, res) {
         .json({ message: "Client is not the owner of the order" });
     if(req.body.year!==undefined && req.body.month!==undefined && req.body.day!==undefined && req.body.hour!==undefined && req.body.minute!==undefined){
         const date = new Date(req.body.year, req.body.month - 1, req.body.day, req.body.hour, req.body.minute);
-        console.log('date: ', date);
         order.withdrawDate = date.getTime();
     }else{
         return res.status(400).json({ message: "Bad request" });
